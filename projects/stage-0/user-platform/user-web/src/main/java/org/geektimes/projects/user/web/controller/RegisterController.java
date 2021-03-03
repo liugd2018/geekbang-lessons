@@ -32,19 +32,7 @@ public class RegisterController implements PageController {
         user.setPhoneNumber(request.getParameter("phoneNum"));
         user.setPassword(request.getParameter("password"));
 
-
-
-
-
         if (userService.register(user)){
-
-            List<User> users = userService.queryAll();
-
-            for (User user1: users) {
-
-                System.out.println(user1);
-
-            }
             request.setAttribute("userList", userService.queryAll());
             return "success.jsp";
         } else {

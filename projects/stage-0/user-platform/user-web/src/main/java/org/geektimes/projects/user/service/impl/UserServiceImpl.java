@@ -90,6 +90,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User queryUserByNameAndPassword(String name, String password) {
-        return null;
+
+        Connection connection = null;
+        DBConnectionManager connectionManager = new DBConnectionManager();
+        try {
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+            String databaseURL = "jdbc:derby:user-platform;create=true";
+            connection = DriverManager.getConnection(databaseURL);
+            connectionManager.setConnection(connection);
+
+            UserRepository userRepository = new DatabaseUserRepository(connectionManager);
+            User user = userRepository.getByNameAndPassword(name,password);
+            return user;
+
+        } catch (SQLException | ClassNotFoundException e) {
+            logger.log(Level.FINE, e.getMessage(), e.fillInStackTrace());
+            return null;
+        }finally {
+            connectionManager.releaseConnection();
+        }
+
+
     }
 }

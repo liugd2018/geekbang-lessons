@@ -68,8 +68,9 @@ public class FrontControllerServlet extends HttpServlet {
                 }
                 handleMethodInfoMapping.put(requestPath,
                         new HandlerMethodInfo(requestPath, method, supportedHttpMethods));
+                controllersMapping.put(requestPath, controller);
             }
-            controllersMapping.put(requestPath, controller);
+
         }
     }
 

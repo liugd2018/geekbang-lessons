@@ -1,5 +1,6 @@
 package org.geektimes.projects.user.web.controller;
 
+import org.geektimes.projects.user.domain.User;
 import org.geektimes.projects.user.service.UserService;
 import org.geektimes.projects.user.service.impl.UserServiceImpl;
 import org.geektimes.web.mvc.controller.PageController;
@@ -25,15 +26,16 @@ public class LoginController implements PageController {
 
         UserService userService = new UserServiceImpl();
 
-        userService.queryUserByNameAndPassword(request.getParameter("name"),request.getParameter("password"));
+        User user = userService.queryUserByNameAndPassword(request.getParameter("name"), request.getParameter("password"));
 
-//        if (userService.register(user)){
-//            return "success.jsp";
-//        } else {
-//            return "fail.jsp";
-//        }
 
-        return null;
+
+
+        if (user == null){
+            return "login-fail.jsp";
+        } else {
+            return "login-success.jsp";
+        }
 
     }
 
