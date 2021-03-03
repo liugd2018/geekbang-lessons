@@ -7,6 +7,7 @@ import org.geektimes.projects.user.sql.DBConnectionManager;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
@@ -43,7 +44,13 @@ public class DatabaseUserRepository implements UserRepository {
 
     @Override
     public boolean save(User user) {
-        return false;
+
+        int count = executeUpdate(INSERT_USER_DML_SQL, user.getName(), user.getPassword(), user.getEmail(), user.getPhoneNumber());
+        if (count != 0){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
@@ -111,22 +118,7 @@ public class DatabaseUserRepository implements UserRepository {
                                  Consumer<Throwable> exceptionHandler, Object... args) {
         Connection connection = getConnection();
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            for (int i = 0; i < args.length; i++) {
-                Object arg = args[i];
-                Class argType = arg.getClass();
-
-                Class wrapperType = wrapperToPrimitive(argType);
-
-                if (wrapperType == null) {
-                    wrapperType = argType;
-                }
-
-                // Boolean -> boolean
-                String methodName = preparedStatementMethodMappings.get(argType);
-                Method method = PreparedStatement.class.getMethod(methodName, wrapperType);
-                method.invoke(preparedStatement, i + 1, args);
-            }
+            PreparedStatement preparedStatement = getPreparedStatement(sql, connection, args);
             ResultSet resultSet = preparedStatement.executeQuery();
             // 返回一个 POJO List -> ResultSet -> POJO List
             // ResultSet -> T
@@ -135,6 +127,57 @@ public class DatabaseUserRepository implements UserRepository {
             exceptionHandler.accept(e);
         }
         return null;
+    }
+
+    /**
+     * 插入数据
+     * @param sql
+     * @param args
+     * @return
+     */
+    protected int executeUpdate(String sql, Object... args) {
+        Connection connection = getConnection();
+        try {
+            PreparedStatement preparedStatement = getPreparedStatement(sql, connection, args);
+            return preparedStatement.executeUpdate();
+
+        } catch (Throwable e) {
+            logger.log(Level.FINE, e.getMessage(), e.fillInStackTrace());
+            return 0;
+        }
+
+    }
+
+    /**
+     * common  处理
+     * @param sql
+     * @param connection
+     * @param args
+     * @return
+     * @throws SQLException
+     * @throws NoSuchMethodException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     */
+    private PreparedStatement getPreparedStatement(String sql, Connection connection, Object... args)
+            throws SQLException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class argType = arg.getClass();
+
+            Class wrapperType = wrapperToPrimitive(argType);
+
+            if (wrapperType == null) {
+                wrapperType = argType;
+            }
+
+            // Boolean -> boolean
+            String methodName = preparedStatementMethodMappings.get(argType);
+            Method method = PreparedStatement.class.getMethod(methodName, int.class,wrapperType);
+            method.invoke(preparedStatement, i + 1, arg);
+        }
+        return preparedStatement;
     }
 
 

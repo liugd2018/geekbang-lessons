@@ -18,6 +18,8 @@ public class HelloWorldController implements PageController {
     @POST
     @Path("/world") // /hello/world -> HelloWorldController
     public String execute(HttpServletRequest request, HttpServletResponse response) throws Throwable {
-        return "index.jsp";
+
+
+        return "login-form.jsp";
     }
 }
