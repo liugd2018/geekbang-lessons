@@ -1,5 +1,7 @@
 package org.geektimes.projects.user.web.listener;
 
+import org.geektimes.context.ComponentContext;
+
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -20,13 +22,17 @@ public class DBConnectionInitializerListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
 
-        servletContext = sce.getServletContext();
-        Connection connection = getConnection();
+        this.servletContext = sce.getServletContext();
+        ComponentContext context = new ComponentContext();
+        context.init(servletContext);
 
-        if (connection != null){
-            System.out.println("获取JNDI 成功！！");
-            servletContext.log("获取JNDI 成功！！");
-        }
+//        servletContext = sce.getServletContext();
+//        Connection connection = getConnection();
+//
+//        if (connection != null){
+//            System.out.println("获取JNDI 成功！！");
+//            servletContext.log("获取JNDI 成功！！");
+//        }
 
     }
 
@@ -43,11 +49,14 @@ public class DBConnectionInitializerListener implements ServletContextListener {
             Context envContext = (Context) context.lookup("java:comp/env");
 
             DataSource dataSource = (DataSource) envContext.lookup("jdbc/UserPlatformDB");
-           return dataSource.getConnection();
+            Connection connection = dataSource.getConnection();
+            if (connection != null){
+                System.out.println("获取JNDI 成功！！");
+            }
+           return connection;
         } catch (NamingException | SQLException e) {
             servletContext.log(e.getMessage(), e);
             throw new RuntimeException(e);
-
         }
 
     }

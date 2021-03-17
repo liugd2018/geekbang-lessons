@@ -1,0 +1,3 @@
+org.geektimes.microprofile.config.converter.IntegerConverter
+org.geektimes.microprofile.config.converter.BooleanConverter
+org.geektimes.microprofile.config.converter.StringConverter
